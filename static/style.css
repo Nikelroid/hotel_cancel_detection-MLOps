@@ -1,0 +1,136 @@
+/* Reset & base style */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Inter", sans-serif;
+}
+
+body {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px; /* was 20px */
+  color: #333;
+}
+
+/* Container */
+.container {
+  background: #fff;
+  padding: 28px; /* was 40px */
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 600px;
+  animation: fadeIn 0.6s ease;
+}
+
+.container h2 {
+  text-align: center;
+  margin-bottom: 18px; /* was 25px */
+  font-size: 1.6rem; /* was 1.8rem */
+  color: #333;
+}
+
+/* Form */
+.prediction-form .form-group {
+  margin-bottom: 12px; /* was 18px */
+}
+
+.prediction-form label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px; /* was 6px */
+  color: #444;
+}
+
+.prediction-form input,
+.prediction-form select {
+  width: 100%;
+  padding: 8px 10px; /* was 10px 12px */
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px; /* was 15px */
+  outline: none;
+  transition: 0.25s;
+}
+
+.prediction-form input:focus,
+.prediction-form select:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 4px rgba(102, 126, 234, 0.4); /* was 6px */
+}
+
+/* Button */
+.btn {
+  width: 100%;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border: none;
+  color: #fff;
+  padding: 10px; /* was 14px */
+  font-size: 15px; /* was 16px */
+  font-weight: 600;
+  border-radius: 8px; /* was 10px */
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3); /* was 6px 14px */
+}
+
+/* Result box */
+.result {
+  margin-top: 18px; /* was 25px */
+  padding: 12px; /* was 18px */
+  border-radius: 10px; /* was 12px */
+  font-size: 1rem; /* was 1.1rem */
+  font-weight: 500;
+  text-align: center;
+  animation: slideUp 0.6s ease;
+}
+
+.result.success {
+  background: #e6f9ee;
+  border: 2px solid #3cb371;
+  color: #2e8b57;
+}
+
+.result.danger {
+  background: #fde8e8;
+  border: 2px solid #e74c3c;
+  color: #c0392b;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(10px); } /* was 12px */
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 20px; /* was 20px 30px */
+}
+
+.form-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px; /* was 12px */
+}
+
+/* Make it single column on mobile */
+@media (max-width: 768px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}

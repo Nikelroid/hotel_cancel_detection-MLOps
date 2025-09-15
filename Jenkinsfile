@@ -31,19 +31,37 @@ pipeline{
                 }
             }
         }
-        stage('Building and Pushing Docker image to GCR'){
+stage('Building and Pushing Docker image to GCR'){
             steps{
                 script{
                     withCredentials([file(credentialsId : 'gcp-key' , variable : 'GOOGLE_APPLICATION_CREDENTIALS')]){
                         script{
                             echo 'Building and Pushing Docker image to GCR ...'
                             sh '''
+                            set -e  # Exit on any error
                             export PATH=$PATH:${GCLOUD_PATH}
+                            
+                            # Authenticate and configure GCloud
                             gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
                             gcloud config set project ${GCP_PROJECT}
                             gcloud auth configure-docker --quiet
-                            docker build -t gcr.io/${GCP_PROJECT}/mlops-project:latest .
+                            
+                            # Verify Docker daemon is accessible
+                            docker info
+                            
+                            # Build for Cloud Run compatible platform (amd64)
+                            echo "Building Docker image for linux/amd64 platform..."
+                            docker build --platform linux/amd64 -t gcr.io/${GCP_PROJECT}/mlops-project:latest .
+                            
+                            # Push the image
+                            echo "Pushing Docker image to GCR..."
                             docker push gcr.io/${GCP_PROJECT}/mlops-project:latest
+                            
+                            # Verify image architecture
+                            echo "Verifying image architecture..."
+                            docker manifest inspect gcr.io/${GCP_PROJECT}/mlops-project:latest | grep architecture || true
+                            
+                            echo "Docker image build and push completed successfully!"
                             '''
                         }
                     }
@@ -51,21 +69,44 @@ pipeline{
             }
         }
 
-        stage('Deploy to google cloud run'){
+        stage('Deploy to Google Cloud Run'){
             steps{
                 script{
                     withCredentials([file(credentialsId : 'gcp-key' , variable : 'GOOGLE_APPLICATION_CREDENTIALS')]){
                         script{
-                            echo 'Deploy to google cloud run ...'
+                            echo 'Deploying to Google Cloud Run...'
                             sh '''
+                            set -e  # Exit on any error
                             export PATH=$PATH:${GCLOUD_PATH}
+                            
+                            # Authenticate and configure GCloud
                             gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
                             gcloud config set project ${GCP_PROJECT}
-                            gcloud run deploy ml-project \
-                                   --image=gcr.io/${GCP_PROJECT}/mlops-project:latest \
-                                   --platform=managed \
-                                   --region=us-west2 \
-                                   --allow-unauthenticated
+                            
+                            # Deploy to Cloud Run with detailed configuration
+                            echo "Deploying ml-project to Cloud Run..."
+                            gcloud run deploy ml-project \\
+                                   --image=gcr.io/${GCP_PROJECT}/mlops-project:latest \\
+                                   --platform=managed \\
+                                   --region=us-west2 \\
+                                   --allow-unauthenticated \\
+                                   --port=8080 \\
+                                   --memory=2Gi \\
+                                   --cpu=1 \\
+                                   --min-instances=0 \\
+                                   --max-instances=10 \\
+                                   --timeout=300 \\
+                                   --concurrency=80 \\
+                                   --quiet
+                            
+                            # Get and display the service URL
+                            SERVICE_URL=$(gcloud run services describe ml-project --region=us-west2 --format='value(status.url)')
+                            echo "Deployment successful!"
+                            echo "Service URL: $SERVICE_URL"
+                            
+                            # Optional: Test the deployment
+                            echo "Testing deployment..."
+                            curl -s -o /dev/null -w "%{http_code}" $SERVICE_URL || echo "Health check failed, but deployment completed"
                             '''
                         }
                     }

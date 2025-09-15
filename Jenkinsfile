@@ -31,7 +31,7 @@ pipeline{
                 }
             }
         }
-                stage('Building and Pushing Docker image to GCR'){
+        stage('Building and Pushing Docker image to GCR'){
             steps{
                 script{
                     withCredentials([file(credentialsId : 'gcp-key' , variable : 'GOOGLE_APPLICATION_CREDENTIALS')]){
@@ -50,5 +50,28 @@ pipeline{
                 }
             }
         }
+
+        stage('Deploy to google cloud run'){
+            steps{
+                script{
+                    withCredentials([file(credentialsId : 'gcp-key' , variable : 'GOOGLE_APPLICATION_CREDENTIALS')]){
+                        script{
+                            echo 'Deploy to google cloud run ...'
+                            sh '''
+                            export PATH=$PATH:${GCLOUD_PATH}
+                            gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
+                            gcloud config set project ${GCP_PROJECT}
+                            gcloud run deploy ml-project \
+                                   --image=gcr.io/${GCP_PROJECT}/mlops-project:latest \
+                                   --platform=managed \
+                                   --region=us-west2 \
+                                   --allow-unauthenticated
+                            '''
+                        }
+                    }
+                }
+            }
+        }
+
     }
 }
